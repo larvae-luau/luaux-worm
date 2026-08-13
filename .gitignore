@@ -1,7 +1,5 @@
 /target
 
-# Every Markdown file stays local, because notes and plans are for one machine.
-# The two documents that a reader needs are the exception.
 *.md
 !README.md
 !CONTRIBUTING.md
