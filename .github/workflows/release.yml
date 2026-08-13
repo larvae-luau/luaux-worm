@@ -33,8 +33,11 @@ jobs:
             os: macos-latest
           - target: aarch64-apple-darwin
             os: macos-latest
-          - target: x86_64-pc-windows-msvc
-            os: windows-latest
+          # x86_64-pc-windows-msvc waits for a release of `larvae-worm` that
+          # gates its wasm node API behind `target_arch = "wasm32"`. Until
+          # then `link.exe` refuses a native worm, and an archive with no
+          # working executable in it is worse than no archive. See the windows
+          # job of ci.yml.
 
     steps:
       - uses: actions/checkout@v4
@@ -64,7 +67,7 @@ jobs:
             cp "target/${{ matrix.target }}/release/luaux-worm" "staging/$name/"
           fi
 
-          cd staging && 7z a "../$name.zip" "$name"
+          cd staging && zip -r "../$name.zip" "$name"
 
       - uses: actions/upload-artifact@v4
         with:

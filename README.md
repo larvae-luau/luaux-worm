@@ -39,6 +39,13 @@ The linter reports a finding with no severity. larvae stamps the level, applies
   `Settings` on `init`, `Format::spans`, and the lint shadow. Run
   `larvae self update` if `larvae worm info` reports
   `unknown variant 'native', expected 'luau' or 'wasm'`.
+- Linux or macOS, for now. `larvae-worm 0.1.1-beta` compiles the node API of
+  the wasm form on every target, and the `extern` block of that module names
+  host functions that resolve on wasm32 alone. `link.exe` then refuses every
+  native worm with nine unresolved symbols, and the linker of linux and of
+  macos drops an object that nothing calls. The code compiles for windows
+  today, and it links there when a release of the crate gates that module
+  behind `target_arch = "wasm32"`.
 
 ## Build and install
 

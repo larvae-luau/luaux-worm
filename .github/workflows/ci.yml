@@ -39,7 +39,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest]
     steps:
       - uses: actions/checkout@v4
 
@@ -52,3 +52,29 @@ jobs:
       # the protocol tests start the executable and speak to it as larvae does.
       - name: cargo test
         run: cargo test
+
+  windows:
+    name: compile for windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      # This job compiles the code and stops before the linker, because no
+      # native worm links on windows today.
+      #
+      # `larvae-worm 0.1.1-beta` compiles `src/node.rs` on every target, and
+      # that module declares the host imports of the wasm form in an `extern`
+      # block. Those names resolve on wasm32 alone. `link.exe` reads the whole
+      # object of the crate and reports nine unresolved symbols, among them
+      # `node_kind` and `take_str`, while the linker of linux and of macos
+      # drops an object that nothing calls.
+      #
+      # When a release of the crate gates that module behind
+      # `target_arch = "wasm32"`, this job runs `cargo test` again, and the
+      # windows target comes back to release.yml.
+      - name: cargo check
+        run: cargo check --all-targets
