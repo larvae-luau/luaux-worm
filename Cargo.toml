@@ -1,0 +1,20 @@
+[package]
+name = "luaux-worm"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+# The `native` feature brings in `larvae_worm::native`, which owns the stdin and
+# stdout protocol. The module does not compile in without the feature.
+# 0.1.1-beta carries Settings on init, Format::spans, and the lint shadow.
+larvae-worm = { version = "0.1.1-beta", features = ["native"] }
+luaux = "0.1.3"
+# `luaux.toml` and the `[worms.luaux.config]` table of larvae become one text
+# before the luaux crate reads them, and that join needs a TOML reader.
+toml = "1"
+# larvae sends the resolved `[fmt]` table of the project as JSON.
+serde_json = "1"
+# larvae formats a whole statement and refuses less, so the worm parses the
+# shadow of the file to find where each statement ends. This is the parser that
+# luaux uses as well, so the two agree about the same bytes.
+full_moon = { version = "2.2.0", features = ["luau"] }
