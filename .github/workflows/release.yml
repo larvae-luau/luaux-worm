@@ -36,11 +36,9 @@ jobs:
           - target: aarch64-apple-darwin
             os: macos-latest
             asset: luaux-worm-aarch64-macos
-          # `luaux-worm-x86_64-windows` waits for a release of `larvae-worm`
-          # that gates its wasm node API behind `target_arch = "wasm32"`.
-          # Until then `link.exe` refuses a native worm, and an archive with
-          # no working executable in it is worse than no archive. See the
-          # windows job of ci.yml.
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            asset: luaux-worm-x86_64-windows
 
     steps:
       - uses: actions/checkout@v4
