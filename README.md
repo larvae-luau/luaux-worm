@@ -64,9 +64,10 @@ directory. Point the project at that directory:
 path = "path/to/luaux-worm/dist"
 ```
 
-Use `path`, and not a release, for now. larvae does not set the executable bit
-when it unpacks a release zip, so a native worm from a release does not run yet
-on unix.
+A release works as well, with a larvae that looks for
+`<name>-worm-<arch>-<os>.zip` and sets the executable bit after it unpacks one.
+The release job of this repository writes exactly those names, so a project
+takes the worm by version and names no asset.
 
 Check what the manifest declares, and run one file through the worm:
 
