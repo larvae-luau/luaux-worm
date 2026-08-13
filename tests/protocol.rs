@@ -172,13 +172,13 @@ local more = <Frame Visible={{true}}>
         .collect();
 
     for name in [
-        "luaux_unresolved_name",
-        "luaux_static_conditional_child",
-        "luaux_duplicate_attribute",
-        "luaux_self_closing_element",
-        "luaux_useless_fragment",
-        "luaux_explicit_true_attribute",
-        "luaux_comment_as_text",
+        "unresolved_name",
+        "static_conditional_child",
+        "duplicate_attribute",
+        "self_closing_element",
+        "useless_fragment",
+        "explicit_true_attribute",
+        "comment_as_text",
     ] {
         assert!(names.contains(&name), "{name} is missing from {names:?}");
     }

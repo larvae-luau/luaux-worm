@@ -8,7 +8,9 @@
 //!
 //! To add a rule:
 //!
-//! 1. Declare the name in `[lints]` in `worm.toml`, and start it with `luaux_`.
+//! 1. Declare the name in `[lints]` in `worm.toml`. The name is bare: larvae
+//!    puts it under the key of this worm, so `useless_fragment` reads as
+//!    `luaux.useless_fragment` everywhere outside this repository.
 //! 2. Write the file, with the name as a constant and a `check` function.
 //! 3. Add the module here, and call it in [`findings`].
 //! 4. Add the rule to the table in `README.md`.

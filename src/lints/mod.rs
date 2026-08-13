@@ -18,9 +18,12 @@ use luaux::Config;
 use crate::scan;
 use crate::shadow;
 
-/// Every name that a finding carries appears in `[lints]` in `worm.toml`.
-/// larvae counts a finding under a name that the manifest does not declare as
-/// an error against the file.
+/// Every name that a finding carries appears in `[lints]` in `worm.toml`, and
+/// each one is bare. larvae puts the name under the key of this worm, so a
+/// reader of the output sees `luaux.useless_fragment` and a project writes
+/// every lint of this worm under `[lint.rules.luaux]`. larvae counts a finding
+/// under a name that the manifest does not declare as an error against the
+/// file.
 ///
 /// A file that does not compile still gets an answer. The editor sends the
 /// file on every keystroke, and a file that somebody is typing is broken most
@@ -68,9 +71,9 @@ mod tests {
             .map(|finding| finding.lint.as_str())
             .collect();
 
-        assert!(names.contains(&"luaux_unresolved_name"), "{names:?}");
-        assert!(names.contains(&"luaux_duplicate_attribute"), "{names:?}");
-        assert!(names.contains(&"luaux_self_closing_element"), "{names:?}");
+        assert!(names.contains(&"unresolved_name"), "{names:?}");
+        assert!(names.contains(&"duplicate_attribute"), "{names:?}");
+        assert!(names.contains(&"self_closing_element"), "{names:?}");
     }
 
     #[test]
@@ -98,13 +101,10 @@ mod tests {
         let names = names("return <Frame Text=\"a\" Text=\"b\"/>\n");
 
         assert!(
-            names.contains(&String::from("luaux_duplicate_attribute")),
+            names.contains(&String::from("duplicate_attribute")),
             "{names:?}"
         );
-        assert!(
-            names.contains(&String::from("luaux_compile_error")),
-            "{names:?}"
-        );
+        assert!(names.contains(&String::from("compile_error")), "{names:?}");
     }
 
     #[test]
@@ -114,7 +114,7 @@ mod tests {
         let result = lint("return <Frame>\n", &Config::default()).expect("an answer");
 
         assert_eq!(result.findings.len(), 1, "{result:?}");
-        assert_eq!(result.findings[0].lint, "luaux_compile_error");
+        assert_eq!(result.findings[0].lint, "compile_error");
         assert!(result.findings[0].message.contains("unclosed element"));
 
         // The mark holds bytes, so an editor has something to underline.
@@ -124,7 +124,7 @@ mod tests {
 
     #[test]
     fn gives_larvae_the_comments_that_hide_a_finding() {
-        let allow = "-- larvae: allow(luaux_static_conditional_child)\n";
+        let allow = "-- larvae: allow(luaux.static_conditional_child)\n";
         let src = format!("{allow}{IMPORT}return <Frame/>\n");
         let result = lint(&src, &Config::default()).expect("lint");
 

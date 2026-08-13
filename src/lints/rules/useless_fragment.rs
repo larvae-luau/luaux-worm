@@ -4,7 +4,7 @@ use larvae_worm::native::Finding;
 use luaux::markup::{Child, Node};
 
 /// The name that `worm.toml` declares for this rule.
-pub const NAME: &str = "luaux_useless_fragment";
+pub const NAME: &str = "useless_fragment";
 
 /// Reports the `<>` of `<Frame><><A/><B/></></Frame>`.
 ///

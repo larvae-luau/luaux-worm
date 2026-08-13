@@ -35,17 +35,13 @@ The linter reports a finding with no severity. larvae stamps the level, applies
 ## What you need
 
 - Rust 1.85 or later, for the 2024 edition.
-- `larvae 0.1.0-beta` or later, which reads `form = "native"` and carries
-  `Settings` on `init`, `Format::spans`, and the lint shadow. Run
-  `larvae self update` if `larvae worm info` reports
-  `unknown variant 'native', expected 'luau' or 'wasm'`.
-- Linux or macOS, for now. `larvae-worm 0.1.1-beta` compiles the node API of
-  the wasm form on every target, and the `extern` block of that module names
-  host functions that resolve on wasm32 alone. `link.exe` then refuses every
-  native worm with nine unresolved symbols, and the linker of linux and of
-  macos drops an object that nothing calls. The code compiles for windows
-  today, and it links there when a release of the crate gates that module
-  behind `target_arch = "wasm32"`.
+- A larvae that names the lints of a worm under the key of the worm. Every lint
+  here is a bare name, so a larvae that reads `[lint.rules.luaux]` as a level
+  and not as a table refuses the project. `larvae 0.1.2-beta` is such a larvae,
+  and the release after it is the first that reads the table.
+- Linux, macOS, or Windows. `larvae-worm 0.1.2-beta` gates the node API of the
+  wasm form behind `target_arch = "wasm32"`, so a native worm links on each of
+  them. An earlier crate gives `link.exe` nine unresolved symbols.
 
 ## Build and install
 
@@ -100,10 +96,13 @@ indent_type            = "tabs"
 luaux_attribute_quotes = "double"
 luaux_text_wrap        = "fill"
 
-# The level of each lint, beside the builtin lints.
+# The level of each lint of this worm, under the key of this worm.
+[lint.rules.luaux]
+static_conditional_child = "warn"
+
+# The builtin lints of larvae, in `.luaux` files too.
 [lint.rules]
-luaux_static_conditional_child = "warn"
-shadowing                      = "deny"
+shadowing = "deny"
 ```
 
 The width and the indentation of the output are settings of larvae, because
@@ -147,28 +146,40 @@ those one time, for its `.luau` files and its `.luaux` files together.
 
 ## The lints
 
+Each name below is bare, and larvae puts it under the key of this worm. So a
+lint of this worm reads as `luaux.<name>` outside this repository, a project
+writes every one of them together, and a name here can never take the name of a
+builtin:
+
+```toml
+[lint.rules.luaux]
+useless_fragment = "allow"
+compile_error    = "deny"
+```
+
 A level is `allow`, `warn`, or `deny`, and `deny` is the level that fails the
-run. The user sets one in `[lint.rules]`, beside the builtin lints of larvae.
+run. `larvae lint --explain luaux.<name>` reads the description of each one,
+and `-- larvae: allow(luaux.<name>)` hides one finding.
 
 The luaux compiler reports the first four while it builds the file:
 
 | Name | Default | What it reports |
 |---|---|---|
-| `luaux_compile_error` | `deny` | A problem that stops the compiler, such as an element that no tag closes. It is a finding, and not a message about the whole file, so an editor marks the bytes that are wrong. |
-| `luaux_static_conditional_child` | `warn` | Markup in a child expression that no function encloses. The code builds the child one time, so a condition around it looks live and is not. Wrap it in a function, as `{function() return ... end}`, and Vide tracks it. |
-| `luaux_unresolved_name` | `deny` | An element that is neither a Roblox class nor a component in scope, or a property that the class does not have. |
-| `luaux_compile_warning` | `warn` | A warning of the luaux compiler that this worm has no more exact name for. |
+| `compile_error` | `deny` | A problem that stops the compiler, such as an element that no tag closes. It is a finding, and not a message about the whole file, so an editor marks the bytes that are wrong. |
+| `static_conditional_child` | `warn` | Markup in a child expression that no function encloses. The code builds the child one time, so a condition around it looks live and is not. Wrap it in a function, as `{function() return ... end}`, and Vide tracks it. |
+| `unresolved_name` | `deny` | An element that is neither a Roblox class nor a component in scope, or a property that the class does not have. |
+| `compile_warning` | `warn` | A warning of the luaux compiler that this worm has no more exact name for. |
 
 The worm reads the rest from the markup itself. Each one follows a rule of
 [Biome][biome] for JSX, and says the same thing for markup that Vide builds:
 
 | Name | Default | What it reports | Biome |
 |---|---|---|---|
-| `luaux_duplicate_attribute` | `deny` | The same attribute name two times on one element. The last value wins, and the other line does nothing. | `noDuplicateJsxProps` |
-| `luaux_self_closing_element` | `warn` | `<Frame></Frame>`, which is `<Frame/>` with more to read. | `useSelfClosingElements` |
-| `luaux_useless_fragment` | `warn` | A fragment inside another node. A fragment is a plain table, and Vide reads a table in a child slot as a list of children, so the level goes away again. | `noUselessFragments` |
-| `luaux_explicit_true_attribute` | `warn` | `Visible={true}`, where `Visible` means the same. | `noImplicitBoolean` |
-| `luaux_comment_as_text` | `warn` | A text child that starts with `--` or `//`. Between two tags that is text, and the player reads it on the screen. | `noCommentText` |
+| `duplicate_attribute` | `deny` | The same attribute name two times on one element. The last value wins, and the other line does nothing. | `noDuplicateJsxProps` |
+| `self_closing_element` | `warn` | `<Frame></Frame>`, which is `<Frame/>` with more to read. | `useSelfClosingElements` |
+| `useless_fragment` | `warn` | A fragment inside another node. A fragment is a plain table, and Vide reads a table in a child slot as a list of children, so the level goes away again. | `noUselessFragments` |
+| `explicit_true_attribute` | `warn` | `Visible={true}`, where `Visible` means the same. | `noImplicitBoolean` |
+| `comment_as_text` | `warn` | A text child that starts with `--` or `//`. Between two tags that is text, and the player reads it on the screen. | `noCommentText` |
 
 [biome]: https://biomejs.dev
 

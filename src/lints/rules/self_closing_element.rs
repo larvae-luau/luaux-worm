@@ -4,7 +4,7 @@ use larvae_worm::native::Finding;
 use luaux::markup::Node;
 
 /// The name that `worm.toml` declares for this rule.
-pub const NAME: &str = "luaux_self_closing_element";
+pub const NAME: &str = "self_closing_element";
 
 /// Reports `<Frame></Frame>`, which is `<Frame/>` with more to read.
 ///

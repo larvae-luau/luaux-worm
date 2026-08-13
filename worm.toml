@@ -8,47 +8,51 @@ claims        = [".luaux"]
 fmt           = true
 inherit_lints = true
 
-# The lints. A level is allow, warn, or deny. There is no error: deny is the
-# level that fails the run.
+# The lints. Each name is bare, and larvae puts it under the key of this worm,
+# so a project writes them together under `[lint.rules.luaux]` and a name of
+# this worm can never take the name of a builtin.
+#
+# A level is allow, warn, or deny. There is no error: deny is the level that
+# fails the run.
 #
 # What the luaux compiler reports while it builds the file.
 
-[lints.luaux_compile_error]
+[lints.compile_error]
 description = "A problem that stops the luaux compiler, such as an element that no tag closes"
 default     = "deny"
 
-[lints.luaux_static_conditional_child]
+[lints.static_conditional_child]
 description = "A conditional child that the code builds one time, so the UI does not update"
 default     = "warn"
 
-[lints.luaux_unresolved_name]
-description = "An element or a property that luaux cannot resolve"
+[lints.unresolved_name]
+description = "An element name that nothing defines, or a property that the class does not have"
 default     = "deny"
 
-[lints.luaux_compile_warning]
-description = "A luaux warning that this worm has no more exact name for"
+[lints.compile_warning]
+description = "A warning of the luaux compiler that no other lint here names"
 default     = "warn"
 
 # What this worm reads from the markup itself. One rule, one file, under
 # src/lints/rules.
 
-[lints.luaux_duplicate_attribute]
+[lints.duplicate_attribute]
 description = "The same attribute name two times on one element, where the last value wins"
 default     = "deny"
 
-[lints.luaux_self_closing_element]
+[lints.self_closing_element]
 description = "An element with no child that keeps a closing tag"
 default     = "warn"
 
-[lints.luaux_useless_fragment]
+[lints.useless_fragment]
 description = "A fragment inside another node, where Vide takes the level away again"
 default     = "warn"
 
-[lints.luaux_explicit_true_attribute]
+[lints.explicit_true_attribute]
 description = "An attribute written as ={true}, where the name on its own means the same"
 default     = "warn"
 
-[lints.luaux_comment_as_text]
+[lints.comment_as_text]
 description = "Text that starts with -- or //, which the player reads on the screen"
 default     = "warn"
 

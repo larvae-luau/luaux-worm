@@ -4,7 +4,7 @@ use larvae_worm::native::Finding;
 use luaux::markup::{Attribute, AttributeValue, Node};
 
 /// The name that `worm.toml` declares for this rule.
-pub const NAME: &str = "luaux_explicit_true_attribute";
+pub const NAME: &str = "explicit_true_attribute";
 
 /// Reports the `={true}` of `<Frame Visible={true}/>`.
 ///

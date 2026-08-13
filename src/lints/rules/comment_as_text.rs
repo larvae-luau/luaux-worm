@@ -4,7 +4,7 @@ use larvae_worm::native::Finding;
 use luaux::markup::{Child, Node};
 
 /// The name that `worm.toml` declares for this rule.
-pub const NAME: &str = "luaux_comment_as_text";
+pub const NAME: &str = "comment_as_text";
 
 /// Reports the `-- a note` of `<TextLabel>-- a note</TextLabel>`.
 ///

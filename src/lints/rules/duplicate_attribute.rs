@@ -4,7 +4,7 @@ use larvae_worm::native::Finding;
 use luaux::markup::{Attribute, Node};
 
 /// The name that `worm.toml` declares for this rule.
-pub const NAME: &str = "luaux_duplicate_attribute";
+pub const NAME: &str = "duplicate_attribute";
 
 /// Reports the second `Text` of `<TextLabel Text="a" Text="b"/>`.
 ///

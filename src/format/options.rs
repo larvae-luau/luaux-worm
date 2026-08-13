@@ -11,15 +11,19 @@
 //!
 //! ```toml
 //! [fmt]
-//! column_width         = 100
-//! luaux_quote_style    = "single"
-//! luaux_text_wrap      = "preserve"
+//! column_width           = 100
+//! luaux_attribute_quotes = "single"
+//! luaux_text_wrap        = "preserve"
 //! ```
 //!
 //! larvae fills every option that the user leaves out, checks each name
 //! against its own options and every other worm, and hands the whole table to
 //! `init`. So one table holds every format option of a project, and a reader
 //! of `larvae.toml` learns one place and not one place per worm.
+//!
+//! A format option keeps the `luaux_` in front of it, and a lint does not. The
+//! two tables are not the same shape: `[fmt]` is one flat table that larvae and
+//! every worm share, and `[lint.rules]` holds a table for each worm.
 
 /// Every option of the layout, with the default of each one.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

@@ -125,8 +125,11 @@ or of Luau.
 One rule is one file, in the same way as Biome keeps one rule per file.
 
 1. Declare the name in `[lints]` in `worm.toml`, with a description and a
-   default level. Start the name with `luaux_`, because larvae refuses a name
-   that a builtin lint already uses.
+   default level. The name is bare: larvae puts it under the key of this worm,
+   so `useless_fragment` reads as `luaux.useless_fragment` everywhere outside
+   this repository, and no name of this worm can take the name of a builtin.
+   Write the description as one line about what is wrong, because an editor
+   shows it as hover text and `larvae lint --explain` prints it.
 2. Write `src/lints/rules/<name>.rs`. It holds the name as a `NAME` constant,
    and a `check(src, node, out)` function that reads the syntax tree and pushes
    a finding for each problem that it sees.

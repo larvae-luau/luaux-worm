@@ -9,17 +9,17 @@ use crate::report;
 
 /// Markup in a child expression that no function encloses. The code builds the
 /// child one time, so the condition around it looks live and is not.
-const STATIC_CONDITIONAL_CHILD: &str = "luaux_static_conditional_child";
+const STATIC_CONDITIONAL_CHILD: &str = "static_conditional_child";
 
 /// A warning of the luaux compiler that this worm has no more exact name for.
 /// A finding under a general name is better than a finding under a wrong name.
-const COMPILE_WARNING: &str = "luaux_compile_warning";
+const COMPILE_WARNING: &str = "compile_warning";
 
 /// An element or a property that the luaux resolver does not know.
-const UNRESOLVED_NAME: &str = "luaux_unresolved_name";
+const UNRESOLVED_NAME: &str = "unresolved_name";
 
 /// A problem that stops the compiler, such as an unclosed element.
-const COMPILE_ERROR: &str = "luaux_compile_error";
+const COMPILE_ERROR: &str = "compile_error";
 
 /// Compiles the file, and reports what the compiler says about it.
 ///
