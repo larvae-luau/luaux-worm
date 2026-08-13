@@ -35,10 +35,17 @@ pub(super) fn doc(layout: &Layout, node: &Node) -> Doc {
 }
 
 /// `<Frame ... />` or `<Frame ...>children</Frame>`.
+///
+/// An element with no child keeps the tags that the author wrote. To turn
+/// `<Frame></Frame>` into `<Frame/>` is to edit the markup, and the worm
+/// reports that as `self_closing_element` instead. A project that sets the
+/// level of that lint to `allow` asks for the longer form, and a formatter
+/// that rewrote it anyway would take the answer back.
 fn element_doc(layout: &Layout, element: &Element) -> Doc {
     let name = element.name.as_written();
+    let source = &layout.src[element.span.start..element.span.end];
 
-    if element.children.is_empty() {
+    if element.children.is_empty() && source.ends_with("/>") {
         return self_closing(layout, format!("<{name}"), &element.attributes);
     }
 
@@ -238,6 +245,16 @@ mod tests {
             json("<Frame/>"),
             r#"{"concat":[{"group":{"concat":[{"lit":"<Frame"},"nil",{"lit":" "},{"lit":"/>"}]}}]}"#
         );
+    }
+
+    #[test]
+    fn an_element_with_no_child_keeps_the_tags_of_the_author() {
+        // To close it is the work of `self_closing_element`, and a project can
+        // set that lint to `allow`.
+        let doc = json("<Frame></Frame>");
+
+        assert!(doc.contains(r#"{"lit":"</Frame>"}"#), "{doc}");
+        assert!(!doc.contains(r#"{"lit":"/>"}"#), "{doc}");
     }
 
     #[test]

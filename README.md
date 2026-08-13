@@ -252,6 +252,10 @@ The rules under that layout:
   file.
 - **Blank lines.** A blank line between two children stays, because the author
   wrote it to separate one idea from the next.
+- **The tags stay as the author wrote them.** An element with no child keeps
+  its closing tag. To write `<Frame/>` for `<Frame></Frame>` is to edit the
+  markup, which is the work of the `self_closing_element` lint, and a project
+  that sets that lint to `allow` asks for the longer form.
 
 ## What it does not do yet
 
