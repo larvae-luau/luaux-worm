@@ -1,0 +1,98 @@
+name  = "luaux"
+api   = 1
+form  = "native"
+entry = "luaux-worm"
+
+[frontend]
+claims        = [".luaux"]
+fmt           = true
+inherit_lints = true
+
+# The lints. A level is allow, warn, or deny. There is no error: deny is the
+# level that fails the run.
+#
+# What the luaux compiler reports while it builds the file.
+
+[lints.luaux_compile_error]
+description = "A problem that stops the luaux compiler, such as an element that no tag closes"
+default     = "deny"
+
+[lints.luaux_static_conditional_child]
+description = "A conditional child that the code builds one time, so the UI does not update"
+default     = "warn"
+
+[lints.luaux_unresolved_name]
+description = "An element or a property that luaux cannot resolve"
+default     = "deny"
+
+[lints.luaux_compile_warning]
+description = "A luaux warning that this worm has no more exact name for"
+default     = "warn"
+
+# What this worm reads from the markup itself. One rule, one file, under
+# src/lints/rules.
+
+[lints.luaux_duplicate_attribute]
+description = "The same attribute name two times on one element, where the last value wins"
+default     = "deny"
+
+[lints.luaux_self_closing_element]
+description = "An element with no child that keeps a closing tag"
+default     = "warn"
+
+[lints.luaux_useless_fragment]
+description = "A fragment inside another node, where Vide takes the level away again"
+default     = "warn"
+
+[lints.luaux_explicit_true_attribute]
+description = "An attribute written as ={true}, where the name on its own means the same"
+default     = "warn"
+
+[lints.luaux_comment_as_text]
+description = "Text that starts with -- or //, which the player reads on the screen"
+default     = "warn"
+
+# The format options that this worm adds. The user writes each one in [fmt],
+# beside column_width, and larvae hands the whole table to init. Each name
+# follows the rule of Prettier or Biome that it comes from.
+
+[fmt.luaux_attribute_quotes]
+type        = "string"
+values      = ["double", "single", "preserve"]
+default     = "double"
+description = "The quotes around the string of an attribute, which quote_style does not govern"
+
+[fmt.luaux_bracket_same_line]
+type        = "boolean"
+default     = false
+description = "Put the > of a tag that breaks after the last attribute, and not on a line of its own"
+
+[fmt.luaux_attribute_per_line]
+type        = "boolean"
+default     = false
+description = "Put each attribute of an element on its own line, even when they fit one line"
+
+[fmt.luaux_self_closing_space]
+type        = "boolean"
+default     = true
+description = "Write <Frame /> with a space before the slash"
+
+[fmt.luaux_text_wrap]
+type        = "string"
+values      = ["fill", "preserve"]
+default     = "fill"
+description = "Fill each line with the words of a text child, or keep the lines of the author"
+
+[fmt.luaux_blank_lines]
+type        = "boolean"
+default     = true
+description = "Keep a blank line that the author wrote between two children"
+
+# The settings that this worm reads from `[worms.luaux.config]`. Everything
+# that the luaux compiler means stays in luaux.toml, so there is one option
+# only, and it says where that file is.
+
+[options.luaux_toml]
+type        = "string"
+default     = "luaux.toml"
+description = "The path of the luaux.toml to read, from the directory that larvae runs in"
