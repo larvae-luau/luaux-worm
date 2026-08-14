@@ -225,7 +225,7 @@ fn the_fmt_table_of_the_project_reaches_the_layout() {
     // larvae sends the resolved `[fmt]` table at init, and this option is one
     // that `worm.toml` declares.
     let fmt =
-        r#"{"column_width":100,"space_inside_braces":false,"luaux_attribute_quotes":"single"}"#;
+        r#"{"column_width":100,"space_inside_braces":false,"luaux":{"attribute_quotes":"single"}}"#;
     let reply = Worm::start_with(fmt).run("format", SOURCE);
 
     assert_eq!(reply["ok"], json!(true), "{reply}");

@@ -90,16 +90,17 @@ syntax, you are in the wrong repository.
 
 ## To add a format option
 
-A format option of a worm sits in the `[fmt]` table of `larvae.toml`, beside
-`column_width`. An option holds one scalar: a boolean, an integer, a float, or
-a string.
+A format option of a worm sits in `[fmt.luaux]` in `larvae.toml`, beside the
+`[fmt]` table of larvae. An option holds one scalar: a boolean, an integer, a
+float, or a string.
 
 1. Declare it in `[fmt]` in `worm.toml`, with `type`, `default`, and
-   `description`, and `values` when it takes a word from a list. Start the name
-   with `luaux_`, because larvae refuses a name that it or an other worm
-   already uses. The description becomes the hover text of the editor. A test
-   reads the manifest and checks that each declared name reaches a field, so a
-   declaration with no code behind it fails the suite.
+   `description`, and `values` when it takes a word from a list. The name is
+   bare, in the same way as a lint: larvae reads it under the key of this worm
+   and refuses a name in `[fmt.luaux]` that the manifest does not declare. The
+   description becomes the hover text of the editor. A test reads the manifest
+   and checks that each declared name reaches a field, so a declaration with no
+   code behind it fails the suite.
 2. Ask first whether larvae already has the setting. `column_width`,
    `indent_width`, and `space_inside_braces` are settings of larvae, and the
    worm follows them under the names of larvae. Declare an option only for

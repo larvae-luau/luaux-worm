@@ -115,7 +115,7 @@ mod tests {
     fn the_fmt_table_of_larvae_reaches_the_layout() {
         let (settings, _) = read(
             "",
-            r#"{"column_width":100,"luaux_attribute_quotes":"single"}"#,
+            r#"{"column_width":100,"luaux":{"attribute_quotes":"single"}}"#,
         )
         .expect("settings");
 
@@ -127,7 +127,7 @@ mod tests {
 
     #[test]
     fn a_bad_value_for_an_option_is_an_error() {
-        let error = read("", r#"{"luaux_text_wrap":"wrap"}"#)
+        let error = read("", r#"{"luaux":{"text_wrap":"wrap"}}"#)
             .err()
             .expect("an error");
 

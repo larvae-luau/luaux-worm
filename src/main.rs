@@ -149,7 +149,7 @@ mod tests {
     fn the_fmt_table_of_larvae_reaches_the_layout() {
         let mut worm = worm();
         let from_larvae = FromLarvae {
-            fmt: String::from(r#"{"luaux_attribute_quotes":"single"}"#),
+            fmt: String::from(r#"{"luaux":{"attribute_quotes":"single"}}"#),
             lint: String::new(),
         };
 
@@ -166,7 +166,7 @@ mod tests {
     #[test]
     fn bad_settings_say_what_is_wrong_with_them() {
         let from_larvae = FromLarvae {
-            fmt: String::from(r#"{"luaux_text_wrap":"wrap"}"#),
+            fmt: String::from(r#"{"luaux":{"text_wrap":"wrap"}}"#),
             lint: String::new(),
         };
         let error = worm().init("", "", &from_larvae).expect_err("an error");

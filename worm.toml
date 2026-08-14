@@ -56,38 +56,39 @@ default     = "warn"
 description = "Text that starts with -- or //, which the player reads on the screen"
 default     = "warn"
 
-# The format options that this worm adds. The user writes each one in [fmt],
-# beside column_width, and larvae hands the whole table to init. Each name
+# The format options that this worm adds. Each name is bare, in the same way as
+# a lint, and a project writes them together under [fmt.luaux]. larvae hands the
+# whole [fmt] table to init, with its own options beside that table. Each name
 # follows the rule of Prettier or Biome that it comes from.
 
-[fmt.luaux_attribute_quotes]
+[fmt.attribute_quotes]
 type        = "string"
 values      = ["double", "single", "preserve"]
 default     = "double"
 description = "The quotes around the string of an attribute, which quote_style does not govern"
 
-[fmt.luaux_bracket_same_line]
+[fmt.bracket_same_line]
 type        = "boolean"
 default     = false
 description = "Put the > of a tag that breaks after the last attribute, and not on a line of its own"
 
-[fmt.luaux_attribute_per_line]
+[fmt.attribute_per_line]
 type        = "boolean"
 default     = false
 description = "Put each attribute of an element on its own line, even when they fit one line"
 
-[fmt.luaux_self_closing_space]
+[fmt.self_closing_space]
 type        = "boolean"
 default     = true
 description = "Write <Frame /> with a space before the slash"
 
-[fmt.luaux_text_wrap]
+[fmt.text_wrap]
 type        = "string"
 values      = ["fill", "preserve"]
 default     = "fill"
 description = "Fill each line with the words of a text child, or keep the lines of the author"
 
-[fmt.luaux_blank_lines]
+[fmt.blank_lines]
 type        = "boolean"
 default     = true
 description = "Keep a blank line that the author wrote between two children"

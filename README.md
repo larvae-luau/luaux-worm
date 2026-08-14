@@ -60,10 +60,15 @@ directory. Point the project at that directory:
 path = "path/to/luaux-worm/dist"
 ```
 
-A release works as well, with a larvae that looks for
-`<name>-worm-<arch>-<os>.zip` and sets the executable bit after it unpacks one.
-The release job of this repository writes exactly those names, so a project
-takes the worm by version and names no asset.
+A release works as well. larvae looks for `<name>-worm-<arch>-<os>.zip` before
+the plain names, sets the executable bit after it unpacks one, and lifts the
+contents of a single wrapping directory. The release job of this repository
+writes exactly those names, so a project takes the worm by version:
+
+```toml
+[worms]
+luaux = "larvae-luau/luaux-worm@0.1.0-beta"
+```
 
 Check what the manifest declares, and run one file through the worm:
 
@@ -89,12 +94,15 @@ place per worm:
 [worms.luaux]
 path = "path/to/luaux-worm/dist"
 
-# The format options, beside the format options of larvae.
+# The format options of larvae.
 [fmt]
-column_width           = 100
-indent_type            = "tabs"
-luaux_attribute_quotes = "double"
-luaux_text_wrap        = "fill"
+column_width = 100
+indent_type  = "tabs"
+
+# The format options of this worm, under the key of this worm.
+[fmt.luaux]
+attribute_quotes = "double"
+text_wrap        = "fill"
 
 # The level of each lint of this worm, under the key of this worm.
 [lint.rules.luaux]
@@ -126,9 +134,17 @@ a user with no larvae project keeps a working luaux.
 ## The format options
 
 larvae owns the width, the indentation, and the printer. What is left is the
-markup itself, and each decision about it is one option below. `worm.toml`
-declares each one, so `larvae init` writes it with its default and its
-description, and the editor completes it.
+markup itself, and each decision about it is one option below. Each name is
+bare, in the same way as a lint, and a project writes them together:
+
+```toml
+[fmt.luaux]
+attribute_per_line = true
+text_wrap          = "preserve"
+```
+
+`worm.toml` declares each one, so `larvae init` writes it with its default and
+its description, and the editor completes it.
 
 The worm follows the options of larvae as well, for what it lays out itself.
 `indent_type` and `indent_width` say how deep a node sits, and
@@ -137,12 +153,12 @@ those one time, for its `.luau` files and its `.luaux` files together.
 
 | Name | Default | What it decides | Prettier or Biome |
 |---|---|---|---|
-| `luaux_attribute_quotes` | `"double"` | The quotes of the string of an attribute: `"double"`, `"single"`, or `"preserve"`. The text between the quotes never changes, so a string that holds the other quote keeps the quotes that it has. This is not `quote_style`, which governs Luau strings: an attribute value is markup that only looks like Luau. | `jsxQuoteStyle` |
-| `luaux_bracket_same_line` | `false` | Where the `>` of a tag goes when the tag breaks. `false` puts it on a line of its own, under the name. `true` puts it after the last attribute. | `bracketSameLine` |
-| `luaux_attribute_per_line` | `false` | `false` keeps the attributes on one line while they fit it. `true` gives one attribute per line at all times. | `singleAttributePerLine` |
-| `luaux_self_closing_space` | `true` | The space in `<Frame />`. `false` writes `<Frame/>`. | `useSelfClosingElements` |
-| `luaux_text_wrap` | `"fill"` | `"fill"` fills each line with as many words as it holds. `"preserve"` breaks the text where the author broke it. | `proseWrap` |
-| `luaux_blank_lines` | `true` | Whether a blank line between two children stays. | — |
+| `attribute_quotes` | `"double"` | The quotes of the string of an attribute: `"double"`, `"single"`, or `"preserve"`. The text between the quotes never changes, so a string that holds the other quote keeps the quotes that it has. This is not `quote_style`, which governs Luau strings: an attribute value is markup that only looks like Luau. | `jsxQuoteStyle` |
+| `bracket_same_line` | `false` | Where the `>` of a tag goes when the tag breaks. `false` puts it on a line of its own, under the name. `true` puts it after the last attribute. | `bracketSameLine` |
+| `attribute_per_line` | `false` | `false` keeps the attributes on one line while they fit it. `true` gives one attribute per line at all times. | `singleAttributePerLine` |
+| `self_closing_space` | `true` | The space in `<Frame />`. `false` writes `<Frame/>`. | `useSelfClosingElements` |
+| `text_wrap` | `"fill"` | `"fill"` fills each line with as many words as it holds. `"preserve"` breaks the text where the author broke it. | `proseWrap` |
+| `blank_lines` | `true` | Whether a blank line between two children stays. | — |
 
 ## The lints
 
