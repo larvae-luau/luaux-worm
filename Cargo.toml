@@ -2,7 +2,7 @@
 name = "luaux-worm"
 # The version that a project names in `[worms]`, and the tag that carries the
 # release: `luaux = "larvae-luau/luaux-worm@0.1.0-beta"`.
-version = "0.1.0-beta"
+version = "0.1.0"
 edition = "2024"
 # The 2024 edition asks for this, and nothing here asks for more.
 rust-version = "1.85"
