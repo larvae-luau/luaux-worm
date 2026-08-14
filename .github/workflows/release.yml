@@ -52,9 +52,12 @@ jobs:
       - name: cargo build
         run: cargo build --release --target ${{ matrix.target }}
 
-      # `zip` keeps the mode of a file on unix, so the executable bit survives
-      # the archive. The worm and its manifest sit at the root of the archive,
-      # because larvae reads the manifest beside the executable.
+      # The worm and its manifest sit in one directory inside the archive,
+      # which larvae lifts when it unpacks. larvae sets the executable bit
+      # itself, so the mode that an archive carries decides nothing.
+      #
+      # `7z` is on each runner and `zip` is not: the bash of a windows runner
+      # is Git Bash, and that shell ships no `zip`.
       - name: package
         shell: bash
         run: |
@@ -68,7 +71,7 @@ jobs:
             cp "target/${{ matrix.target }}/release/luaux-worm" "staging/$name/"
           fi
 
-          cd staging && zip -r "../$name.zip" "$name"
+          cd staging && 7z a "../$name.zip" "$name"
 
       - uses: actions/upload-artifact@v4
         with:
