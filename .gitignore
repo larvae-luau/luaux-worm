@@ -3,4 +3,5 @@
 *.md
 !README.md
 !CONTRIBUTING.md
+!LICENSE.md
 luaux-worm

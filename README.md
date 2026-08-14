@@ -317,4 +317,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) to change the worm.
 
 ## Licence
 
-MIT.
+MIT. See [LICENSE](LICENSE).
