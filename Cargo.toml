@@ -22,7 +22,7 @@ publish = false
 # 0.1.2-beta carries Settings on init, Format::spans, the lint shadow, and the
 # node API of the wasm form behind `target_arch = "wasm32"`, which is what lets
 # a native worm link on windows.
-larvae-worm = { version = "0.1.2-beta", features = ["native"] }
+larvae-worm = { path = "../larvae-luau/crates/larvae-worm", features = ["native"] }
 luaux = "0.1.3"
 # `luaux.toml` and the `[worms.luaux.config]` table of larvae are TOML.
 toml = "1"

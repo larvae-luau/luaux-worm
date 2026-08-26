@@ -101,3 +101,12 @@ description = "Keep a blank line that the author wrote between two children"
 type        = "string"
 default     = "luaux.toml"
 description = "The path of the luaux.toml to read, from the directory that larvae runs in"
+
+# The editor hooks: this worm resolves requires of .luaux files, hands the
+# analyzer its lowering, and answers markup hover and completions. The
+# requires it resolves are written in plain Luau files too, so claim-only
+# serving widens.
+[lsp]
+resolve = true
+serves_luau = true
+respond = ["hover", "completions"]
