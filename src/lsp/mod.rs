@@ -548,7 +548,7 @@ mod tests {
     /// A project that renames a class completes the name it renamed it to.
     #[test]
     fn a_rename_completes_under_the_name_the_project_writes() {
-        let (settings, _) = crate::settings::read("", "{}").expect("settings with no luaux.toml");
+        let (settings, _) = crate::settings::read("", "{}", "").expect("settings with no luaux.toml");
         let mut settings = settings;
         settings.config =
             luaux::Config::parse("[elements]\nTextLabel = \"text\"\n").expect("a config");

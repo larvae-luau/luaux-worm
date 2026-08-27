@@ -57,7 +57,7 @@ impl Handler for LuauxWorm {
     /// renders anything, so the worm reports what it finds and larvae decides
     /// how loudly to say it.
     fn init(&mut self, config: &str, _rules: &str, from_larvae: &FromLarvae) -> Result<(), String> {
-        let (settings, notes) = settings::read(config, &from_larvae.fmt)?;
+        let (settings, notes) = settings::read(config, &from_larvae.fmt, &from_larvae.root)?;
 
         for note in notes {
             eprintln!("luaux-worm: {note}");
@@ -191,6 +191,7 @@ mod tests {
         let from_larvae = FromLarvae {
             fmt: String::from(r#"{"luaux":{"attribute_quotes":"single"}}"#),
             lint: String::new(),
+            root: String::new(),
         };
 
         worm.init("", "", &from_larvae).expect("settings");
@@ -208,6 +209,7 @@ mod tests {
         let from_larvae = FromLarvae {
             fmt: String::from(r#"{"luaux":{"text_wrap":"wrap"}}"#),
             lint: String::new(),
+            root: String::new(),
         };
         let error = worm().init("", "", &from_larvae).expect_err("an error");
 

@@ -147,11 +147,23 @@ fn renames(table: &toml::Table) -> HashMap<String, String> {
 /// The settings for this run, and the notes about them.
 ///
 /// `config` is the `[worms.luaux.config]` table, as TOML. `fmt` is the resolved
-/// `[fmt]` table of the project, as JSON.
-pub fn read(config: &str, fmt: &str) -> Result<(Settings, Vec<String>), String> {
-    let directory = std::env::current_dir().map_err(|error| {
-        format!("luaux-worm cannot read the directory that it runs in: {error}")
-    })?;
+/// `[fmt]` table of the project, as JSON. `root` is the root of the project.
+///
+/// The path of `luaux.toml` reads against the root, and not against the
+/// directory the worm runs in. `larvae process` runs in the project and the
+/// editor server runs wherever the editor started it, so the working directory
+/// answered for one of them and not the other: in the editor the file went
+/// missing, every markup file compiled with the default factory name, and a
+/// require of one gave an error type. An older larvae sends no root, and the
+/// working directory is then the only answer there is.
+pub fn read(config: &str, fmt: &str, root: &str) -> Result<(Settings, Vec<String>), String> {
+    let directory = match root.is_empty() {
+        false => std::path::PathBuf::from(root),
+
+        true => std::env::current_dir().map_err(|error| {
+            format!("luaux-worm cannot read the directory that it runs in: {error}")
+        })?,
+    };
 
     let path = directory.join(luaux_toml(config)?);
 
@@ -221,6 +233,7 @@ mod tests {
         let (settings, _) = read(
             "",
             r#"{"column_width":100,"luaux":{"attribute_quotes":"single"}}"#,
+            "",
         )
         .expect("settings");
 
@@ -232,7 +245,7 @@ mod tests {
 
     #[test]
     fn a_bad_value_for_an_option_is_an_error() {
-        let error = read("", r#"{"luaux":{"text_wrap":"wrap"}}"#)
+        let error = read("", r#"{"luaux":{"text_wrap":"wrap"}}"#, "")
             .err()
             .expect("an error");
 
@@ -245,12 +258,12 @@ mod tests {
         // the `host` spans without this worm.
         let table = r#"{"column_width":100,"indent_style":"tab","quote_style":"double"}"#;
 
-        assert!(read("", table).is_ok());
+        assert!(read("", table, "").is_ok());
     }
 
     #[test]
     fn no_settings_at_all_are_the_default_settings() {
-        let (settings, notes) = read("", "").expect("settings");
+        let (settings, notes) = read("", "", "").expect("settings");
 
         assert_eq!(settings.config.create, "create");
         assert_eq!(settings.format, Options::default());
