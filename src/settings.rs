@@ -16,6 +16,8 @@
 //! keeps a working luaux, and a file that goes through both tools compiles the
 //! same way in each.
 
+use std::collections::HashMap;
+
 use luaux::Config;
 
 use crate::format::Options;
@@ -38,6 +40,108 @@ pub struct Settings {
     pub config: Config,
     /// What the formatter of this worm reads
     pub format: Options,
+    /// The name this project writes for a class or a property
+    pub spelling: Spelling,
+}
+
+/*
+The name a project writes for a Roblox class or one of its members.
+
+[`Config`] reads a written name and answers with the canonical one, which is
+what a compiler asks. A completion asks the opposite question: it holds
+`TextLabel` and has to offer the word the author is allowed to type. An
+alias table answers that in one direction only, so this holds the reverse of
+`[elements]` and `[properties]`, read from the same file.
+
+A rename retires the name it replaces. Offering the canonical spelling of a
+renamed class would offer a word the compiler rejects, which is worse than
+offering nothing.
+*/
+#[derive(Default)]
+pub struct Spelling {
+    /// class -> the name `[elements]` renamed it to
+    elements: HashMap<String, String>,
+    /// canonical -> the name `[properties]` renamed it to, on every class
+    properties: HashMap<String, String>,
+    /// class -> canonical -> the name `[properties.<class>]` renamed it to
+    class_properties: HashMap<String, HashMap<String, String>>,
+}
+
+/// The key that carries a blanket casing scheme, and not a rename.
+const BLANKET: &str = "all";
+
+impl Spelling {
+    /// Reads the two alias tables of a `luaux.toml`.
+    pub fn read(text: &str) -> Self {
+        let Ok(table) = text.parse::<toml::Table>() else {
+            // The compiler reports the same file, and says it better.
+            return Self::default();
+        };
+
+        let mut spelling = Self::default();
+
+        if let Some(elements) = table.get("elements").and_then(toml::Value::as_table) {
+            spelling.elements = renames(elements);
+        }
+
+        if let Some(properties) = table.get("properties").and_then(toml::Value::as_table) {
+            spelling.properties = renames(properties);
+
+            for (class, entry) in properties {
+                if let Some(entry) = entry.as_table() {
+                    spelling
+                        .class_properties
+                        .insert(class.clone(), renames(entry));
+                }
+            }
+        }
+
+        spelling
+    }
+
+    /// The name this project writes for a class.
+    pub fn element(&self, config: &Config, class: &str) -> String {
+        if let Some(alias) = self.elements.get(class) {
+            return alias.clone();
+        }
+
+        let cased = config.element_casing().apply(class);
+
+        match config.resolve_element(&cased) {
+            Ok(Some(found)) if found == class => cased,
+
+            _ => class.to_string(),
+        }
+    }
+
+    /// The name this project writes for a property or an event of a class.
+    pub fn property(&self, config: &Config, class: &str, canonical: &str) -> String {
+        let per_class = self
+            .class_properties
+            .get(class)
+            .and_then(|table| table.get(canonical));
+
+        if let Some(alias) = per_class.or_else(|| self.properties.get(canonical)) {
+            return alias.clone();
+        }
+
+        let cased = config.property_casing().apply(canonical);
+
+        match config.resolve_property(class, &cased) {
+            Ok(found) if found == canonical => cased,
+
+            _ => canonical.to_string(),
+        }
+    }
+}
+
+/// The string entries of an alias table, less the blanket casing key.
+fn renames(table: &toml::Table) -> HashMap<String, String> {
+    table
+        .iter()
+        .filter(|(name, _)| name.as_str() != BLANKET)
+        .filter_map(|(name, value)| Some((name.clone(), value.as_str()?.to_string())))
+        .collect()
 }
 
 /// The settings for this run, and the notes about them.
@@ -62,6 +166,7 @@ pub fn read(config: &str, fmt: &str) -> Result<(Settings, Vec<String>), String> 
 
     Ok((
         Settings {
+            spelling: Spelling::read(&text),
             config,
             format: Options::read_json(fmt)?,
         },

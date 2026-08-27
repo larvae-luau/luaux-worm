@@ -22,7 +22,6 @@
 //! Never write to stdout. stdout is the protocol channel, and one extra byte
 //! corrupts a reply. Write to stderr instead.
 
-mod creatable;
 mod format;
 mod lints;
 mod lsp;
@@ -122,9 +121,9 @@ impl Handler for LuauxWorm {
         let base: serde_json::Value = serde_json::from_str(response).unwrap_or_default();
 
         match kind {
-            "hover" => Ok(lsp::hover(&context)),
+            "hover" => Ok(lsp::hover(&context, &self.settings)),
 
-            "completions" => Ok(Some(lsp::completions(&context, base))),
+            "completions" => Ok(Some(lsp::completions(&context, base, &self.settings))),
 
             _ => Ok(None),
         }
