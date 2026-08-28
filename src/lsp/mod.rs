@@ -228,9 +228,36 @@ pub fn completions(
                 serde_json::json!(members(&class, &prefix, &taken, settings))
             }
 
-            // A component's props are a Luau type, and the analyzer holds
-            // the types. Nothing here beats what it already said.
-            _ => base,
+            /*
+            A component's props are a Luau type, and the analyzer holds
+            the types. Its answer is trusted only where it looks like
+            props: field entries survive, and everything callable goes.
+            A component is never called bare inside markup, so a list
+            that offers the component as a function call, or the scope's
+            globals, is the analyzer answering for the wrong position.
+            */
+            _ => {
+                let kept: Vec<serde_json::Value> = base
+                    .as_array()
+                    .map(|items| {
+                        items
+                            .iter()
+                            .filter(|item| {
+                                let kind = item["kind"].as_u64().unwrap_or(0);
+                                let calls = item["insertText"]
+                                    .as_str()
+                                    .is_some_and(|t| t.contains('('));
+
+                                // 5 is Field and 10 is Property in the protocol.
+                                (kind == 5 || kind == 10) && !calls
+                            })
+                            .cloned()
+                            .collect()
+                    })
+                    .unwrap_or_default();
+
+                serde_json::json!(kept)
+            }
         },
 
         cursor::Spot::Elsewhere => base,
@@ -565,17 +592,31 @@ mod tests {
     }
 
     /*
-    A component takes a Luau type and this worm does not read types, so the
-    analyzer's answer stands rather than being replaced by nothing.
+    A component takes a Luau type and this worm does not read types, so
+    the analyzer's field answers stand. Only its field answers: a
+    component is never called bare inside markup, so an entry that
+    offers a call, or anything that is not a property, is the analyzer
+    answering for the wrong position and stays out.
     */
     #[test]
-    fn a_components_attributes_stay_with_the_analyzer() {
+    fn a_components_attributes_keep_the_analyzers_fields_alone() {
         let (context, _) = context("local function Card(props)\nend\nlocal x = (<Card Ti|)\n");
-        let base = serde_json::json!([{ "label": "Title" }]);
+        let base = serde_json::json!([
+            { "label": "Title", "kind": 5 },
+            { "label": "Tint", "kind": 10 },
+            { "label": "Card", "kind": 3, "insertText": "Card($1)" },
+            { "label": "table", "kind": 9 },
+        ]);
 
-        let items = completions(&context, base.clone(), &settings());
+        let items = completions(&context, base, &settings());
 
-        assert_eq!(items, base);
+        assert_eq!(
+            items,
+            serde_json::json!([
+                { "label": "Title", "kind": 5 },
+                { "label": "Tint", "kind": 10 },
+            ])
+        );
     }
 
     #[test]
