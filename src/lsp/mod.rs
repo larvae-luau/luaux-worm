@@ -119,7 +119,11 @@ fn tag(written: &str, text: &str, settings: &Settings) -> Tag {
 }
 
 /// The hover their server gives a tag or an attribute.
-pub fn hover(context: &serde_json::Value, settings: &Settings) -> Option<serde_json::Value> {
+pub fn hover(
+    context: &serde_json::Value,
+    base: &serde_json::Value,
+    settings: &Settings,
+) -> Option<serde_json::Value> {
     let text = context["text"].as_str()?;
     let offset = context["offset"].as_u64()? as usize;
 
@@ -134,8 +138,22 @@ pub fn hover(context: &serde_json::Value, settings: &Settings) -> Option<serde_j
             ),
 
             Tag::Component => {
+                /*
+                The element calls the component, so the card carries what
+                the analyzer knows about the call: the function's own
+                signature, which is where a changed return type shows.
+                The description card said the same sentence whatever the
+                component was, and a reader asking "what does this render"
+                got no answer.
+                */
+                let signature = base["contents"]["value"]
+                    .as_str()
+                    .filter(|card| card.contains("```") && !card.contains("Loading"))
+                    .map(|card| format!("\n{card}"))
+                    .unwrap_or_default();
+
                 format!(
-                    "```luaux\n<{name}>\n```\nA component bound in this file; the element calls it."
+                    "```luaux\n<{name}>\n```{signature}\nA component bound in this file; the element calls it."
                 )
             }
 
@@ -420,7 +438,7 @@ mod tests {
     #[test]
     fn a_tag_hover_names_the_class_or_component() {
         let (frame, _) = context(&CARD.replace("<Frame Size", "<Fra|me Size"));
-        let class = hover(&frame, &settings()).expect("a hover");
+        let class = hover(&frame, &serde_json::Value::Null, &settings()).expect("a hover");
 
         assert!(
             class["contents"]["value"]
@@ -431,7 +449,7 @@ mod tests {
         );
 
         let (card, _) = context("local function Card(props)\nend\nlocal x = (<Ca|rd />)\n");
-        let component = hover(&card, &settings()).expect("a hover");
+        let component = hover(&card, &serde_json::Value::Null, &settings()).expect("a hover");
 
         assert!(
             component["contents"]["value"]
@@ -440,12 +458,36 @@ mod tests {
                 .contains("component"),
             "{component}"
         );
+
+        /*
+        The analyzer's card rides along, so a component hover answers what
+        the element renders and not only that it is a component.
+        */
+        let base = serde_json::json!({ "contents": { "kind": "markdown",
+            "value": "```luau\nfunction Card(props): Frame\n```" } });
+        let merged = hover(&card, &base, &settings()).expect("a hover");
+        let text = merged["contents"]["value"].as_str().expect("markdown");
+
+        assert!(text.contains("function Card(props): Frame"), "{merged}");
+        assert!(text.contains("component"), "{merged}");
+
+        let loading = serde_json::json!({ "contents": { "kind": "markdown",
+            "value": "```luau\nLoading...\n```" } });
+        let waiting = hover(&card, &loading, &settings()).expect("a hover");
+
+        assert!(
+            !waiting["contents"]["value"]
+                .as_str()
+                .expect("markdown")
+                .contains("Loading"),
+            "a card that says nothing stays out: {waiting}"
+        );
     }
 
     #[test]
     fn an_attribute_hover_names_the_property_and_its_class() {
         let (at, _) = context("local x = (<Frame Bac|kgroundTransparency={0} />)\n");
-        let answer = hover(&at, &settings()).expect("a hover");
+        let answer = hover(&at, &serde_json::Value::Null, &settings()).expect("a hover");
 
         let text = answer["contents"]["value"].as_str().expect("markdown");
 
@@ -455,7 +497,7 @@ mod tests {
     #[test]
     fn an_event_hover_says_it_is_an_event() {
         let (at, _) = context("local x = (<TextButton Activa|ted={f} />)\n");
-        let answer = hover(&at, &settings()).expect("a hover");
+        let answer = hover(&at, &serde_json::Value::Null, &settings()).expect("a hover");
 
         let text = answer["contents"]["value"].as_str().expect("markdown");
 
@@ -542,7 +584,7 @@ mod tests {
         let base = serde_json::json!([{ "label": "count" }]);
 
         assert_eq!(completions(&context, base.clone(), &settings()), base);
-        assert!(hover(&context, &settings()).is_none());
+        assert!(hover(&context, &serde_json::Value::Null, &settings()).is_none());
     }
 
     /// A project that renames a class completes the name it renamed it to.

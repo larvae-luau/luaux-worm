@@ -121,7 +121,7 @@ impl Handler for LuauxWorm {
         let base: serde_json::Value = serde_json::from_str(response).unwrap_or_default();
 
         match kind {
-            "hover" => Ok(lsp::hover(&context, &self.settings)),
+            "hover" => Ok(lsp::hover(&context, &base, &self.settings)),
 
             "completions" => Ok(Some(lsp::completions(&context, base, &self.settings))),
 
