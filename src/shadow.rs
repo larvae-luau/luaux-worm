@@ -41,7 +41,8 @@ use crate::scan::{self, Segment};
 /// shadow, so a file that this module cannot read still gets the lints of
 /// larvae, by line.
 pub fn view(src: &str, config: &Config) -> Option<String> {
-    let shadow = range(src, 0, src.len(), config)?;
+    let mut called = false;
+    let shadow = range(src, 0, src.len(), config, &mut called)?;
 
     debug_assert_eq!(shadow.len(), src.len(), "the shadow keeps the byte length");
 
@@ -53,7 +54,7 @@ pub fn view(src: &str, config: &Config) -> Option<String> {
 /// The text between two markup regions is Luau already, and it crosses byte for
 /// byte. A hole holds a range of this kind as well, which is why this takes a
 /// range and not the whole file.
-fn range(src: &str, start: usize, end: usize, config: &Config) -> Option<String> {
+fn range(src: &str, start: usize, end: usize, config: &Config, called: &mut bool) -> Option<String> {
     let segments = scan::segments(src, start, end).ok()?;
     let mut out = String::with_capacity(end - start);
 
@@ -65,6 +66,7 @@ fn range(src: &str, start: usize, end: usize, config: &Config) -> Option<String>
                 let mut region = Region::new(src, *start, *end);
                 region.keep_node(node, config);
                 region.keep_factory(&config.create);
+                *called |= region.calls_the_factory;
                 out.push_str(&region.finish());
             }
         }
@@ -211,28 +213,33 @@ impl<'a> Region<'a> {
 
         // A hole can hold markup of its own, and that markup is not Luau. It
         // becomes a table in the same way, and the Luau around it stays.
-        let Some(inside) = range(self.src, start, end, config) else {
+        let mut called = false;
+        let Some(inside) = range(self.src, start, end, config, &mut called) else {
             return;
         };
+
+        self.calls_the_factory |= called;
 
         self.keep(start, end, &inside);
     }
 
-    /// Writes the element factory into a free stretch of the region.
+    /// Writes the factory's base name into a free stretch of the region.
     ///
     /// An intrinsic element compiles to a call of whatever `[factory] create`
-    /// names, so a file that holds one reads that name. Without this, the
-    /// import at the top of every luaux file is a finding of
-    /// `unused_variable`.
+    /// names, so a file that holds one reads that import. Without this, the
+    /// import at the top of every luaux file is a finding of `unused_import`.
     ///
-    /// The name goes in after the rest, and only where the region still holds
-    /// spaces, so it takes the place of no other entry. A region with no room
-    /// for it keeps its spaces, and an other region of the file carries it.
+    /// Only the base identifier goes in: `fluid.create` reads `fluid`, and
+    /// the base is what the import binds and what fits where a dotted path
+    /// would not. One self-closing class element leaves enough spaces for
+    /// most package names, because a class name is not a value and keeps
+    /// nothing of its own.
     fn keep_factory(&mut self, factory: &str) {
         if !self.calls_the_factory || factory.is_empty() {
             return;
         }
 
+        let base = factory.split('.').next().unwrap_or(factory);
         let last = self.bytes.len() - 1;
         let mut spaces = 0;
 
@@ -244,12 +251,12 @@ impl<'a> Region<'a> {
 
             spaces += 1;
 
-            if spaces < factory.len() {
+            if spaces < base.len() {
                 continue;
             }
 
-            let at = index + 1 - factory.len();
-            self.bytes[at..=index].copy_from_slice(factory.as_bytes());
+            let at = index + 1 - base.len();
+            self.bytes[at..=index].copy_from_slice(base.as_bytes());
 
             if index + 1 < last {
                 self.bytes[index + 1] = b',';
@@ -318,6 +325,23 @@ mod tests {
         let shadow = holds_the_rules(src);
 
         assert_eq!(shadow, "local size = 1\nreturn {create,     size, }\n");
+    }
+
+    /*
+    A dotted factory reads by its base name.
+
+    `fluid.create` is a path, and the import at the top of the file binds
+    `fluid`. The base is what the unused lints count, and it fits in one
+    self-closing element where the dotted path would not.
+    */
+    #[test]
+    fn a_dotted_factory_reads_its_base_name() {
+        let mut config = Config::default();
+        config.create = "fluid.create".to_string();
+
+        let shadow = view("return <ScreenGui />\n", &config).expect("a shadow");
+
+        assert_eq!(shadow, "return {fluid,     }\n");
     }
 
     #[test]
