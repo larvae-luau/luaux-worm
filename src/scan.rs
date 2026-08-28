@@ -191,6 +191,8 @@ fn markup_marks(src: &str, node: &Node, out: &mut Marks) {
 
             Attribute::Spread { span, .. } => hole_marks(src, *span, out),
 
+            Attribute::Inferred { span, .. } => hole_marks(src, brace_span(src, *span), out),
+
             Attribute::Named { .. } => {}
         }
     }
@@ -275,6 +277,8 @@ fn node_and_holes(src: &str, node: &Node, visit: &mut impl FnMut(&Node)) {
             } => brace_span(src, *span),
 
             Attribute::Spread { span, .. } => *span,
+
+            Attribute::Inferred { span, .. } => brace_span(src, *span),
 
             Attribute::Named { .. } => continue,
         };

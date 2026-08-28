@@ -65,7 +65,7 @@ mod tests {
     #[test]
     fn gathers_the_findings_of_the_compiler_and_of_the_rules() {
         let src = format!("{IMPORT}return <Frmae Text=\"a\" Text=\"b\"></Frmae>\n");
-        let findings = lint(&src, &Config::default()).expect("lint").findings;
+        let findings = lint(&src, &Config::bare()).expect("lint").findings;
         let names: Vec<&str> = findings
             .iter()
             .map(|finding| finding.lint.as_str())
@@ -79,14 +79,14 @@ mod tests {
     #[test]
     fn reads_the_file_from_the_top_to_the_bottom() {
         let src = format!("{IMPORT}return <Frame>\n\t<Frmae/>\n\t<Frmea/>\n</Frame>\n");
-        let findings = lint(&src, &Config::default()).expect("lint").findings;
+        let findings = lint(&src, &Config::bare()).expect("lint").findings;
 
         assert!(findings.len() >= 2, "{findings:?}");
         assert!(findings.windows(2).all(|pair| pair[0].span <= pair[1].span));
     }
 
     fn names(src: &str) -> Vec<String> {
-        lint(src, &Config::default())
+        lint(src, &Config::bare())
             .expect("an answer")
             .findings
             .iter()
@@ -111,7 +111,7 @@ mod tests {
     fn a_file_that_does_not_parse_gives_the_place_of_the_problem() {
         // A buffer in an editor looks like this between two keystrokes. The
         // markup parser has no recovery, so the mark is all there is.
-        let result = lint("return <Frame>\n", &Config::default()).expect("an answer");
+        let result = lint("return <Frame>\n", &Config::bare()).expect("an answer");
 
         assert_eq!(result.findings.len(), 1, "{result:?}");
         assert_eq!(result.findings[0].lint, "compile_error");
@@ -126,7 +126,7 @@ mod tests {
     fn gives_larvae_the_comments_that_hide_a_finding() {
         let allow = "-- larvae: allow(luaux.static_conditional_child)\n";
         let src = format!("{allow}{IMPORT}return <Frame/>\n");
-        let result = lint(&src, &Config::default()).expect("lint");
+        let result = lint(&src, &Config::bare()).expect("lint");
 
         assert_eq!(result.comments, [(0, allow.len() as u32 - 1)]);
     }

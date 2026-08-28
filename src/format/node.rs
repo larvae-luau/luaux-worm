@@ -180,6 +180,12 @@ fn attribute_doc(layout: &Layout, attribute: &Attribute) -> Doc {
 
         // `{props}` in attribute position.
         Attribute::Spread { span, .. } => hole::doc(layout, *span),
+
+        // `={props.Text}`, the shorthand that names its property.
+        Attribute::Inferred { span, .. } => Doc::concat([
+            Doc::lit("=".to_string()),
+            hole::doc(layout, scan::brace_span(layout.src, *span)),
+        ]),
     }
 }
 

@@ -174,6 +174,20 @@ pub fn read(config: &str, fmt: &str, root: &str) -> Result<(Settings, Vec<String
         Err(error) => return Err(format!("{}: {error}", path.display())),
     };
 
+    /*
+    A pre-0.2.0 `[factory]` block named no backend, because there was only
+    one: the table arrangement of Vide, Fluid, and Fusion. luaux 0.2.0
+    asks the project to say which of its four targets a factory means, and
+    a tree written before the question existed should keep compiling with
+    the meaning it always had. The key goes in only where the block exists
+    and says nothing, so a project that answers is never overruled.
+    */
+    let text = match text.contains("[factory]") && !text.contains("backend") {
+        true => text.replace("[factory]", "[factory]\nbackend = \"table\""),
+
+        false => text,
+    };
+
     let (config, notes) = Config::parse_reporting(&text).map_err(|error| error.message)?;
 
     Ok((
@@ -265,7 +279,7 @@ mod tests {
     fn no_settings_at_all_are_the_default_settings() {
         let (settings, notes) = read("", "", "").expect("settings");
 
-        assert_eq!(settings.config.create, "create");
+        assert_eq!(settings.config.create, "React.createElement");
         assert_eq!(settings.format, Options::default());
         assert!(notes.is_empty());
     }

@@ -11,7 +11,7 @@ use serde_json::{Value, json};
 
 /// A `.luaux` file that holds one of every shape that the worm reads.
 const SOURCE: &str = "\
-local create = require(vide).create
+local React = require(path)
 
 local function App(props)
 \treturn <Frame Size={props.size} Name=\"root\">
@@ -215,8 +215,8 @@ fn lint_gives_larvae_the_luau_shadow_of_the_file() {
         SOURCE.match_indices('\n').count()
     );
     assert!(!shadow.contains('<'), "{shadow}");
-    // The file reads `create` and `props`, and the shadow reads them too.
-    assert!(shadow.contains("create"), "{shadow}");
+    // The file reads `React` and `props`, and the shadow reads them too.
+    assert!(shadow.contains("React"), "{shadow}");
     assert!(shadow.contains("props.size"), "{shadow}");
 }
 

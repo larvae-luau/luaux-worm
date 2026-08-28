@@ -32,7 +32,7 @@ mod shadow;
 mod statements;
 
 use larvae_worm::native::{Format, Handler, Lint, LspLoad, Settings as FromLarvae, serve};
-use luaux::Vide;
+use luaux::{Element, Table};
 
 use settings::Settings;
 
@@ -75,9 +75,12 @@ impl Handler for LuauxWorm {
     /// author wrote. The luaux backend emits the same number of newlines as the
     /// span that it replaces, and this function adds nothing around it.
     fn transform(&mut self, source: &str) -> Result<String, String> {
-        let (output, _warnings) =
-            luaux::compile::compile_configured(source, &Vide, self.settings.config.clone())
-                .map_err(|error| report::compile_error(source, &error))?;
+        let (output, _warnings) = luaux::compile::compile_configured(
+            source,
+            backend(&self.settings.config).as_ref(),
+            self.settings.config.clone(),
+        )
+        .map_err(|error| report::compile_error(source, &error))?;
 
         Ok(output)
     }
@@ -133,6 +136,15 @@ impl Handler for LuauxWorm {
 /// `serve` runs until larvae closes the pipe. A handler that returns `Err`
 /// becomes an error reply, and the worm continues to serve, because one bad
 /// file must not stop a watch session.
+/// The code shape the config asks for; 0.2.0 targets all four libraries.
+fn backend(config: &luaux::Config) -> Box<dyn luaux::Backend> {
+    match config.backend {
+        luaux::config::BackendKind::Table => Box::new(Table),
+
+        luaux::config::BackendKind::Element => Box::new(Element),
+    }
+}
+
 fn main() {
     serve(LuauxWorm {
         settings: Settings::default(),
@@ -151,7 +163,7 @@ mod tests {
 
     #[test]
     fn a_transform_keeps_the_line_count() {
-        let source = "local vide = require(path)\nlocal create = vide.create\n\nreturn function()\n\treturn <Frame>\n\t\t<TextLabel Text=\"hi\"/>\n\t</Frame>\nend\n";
+        let source = "local React = require(path)\n\n\nreturn function()\n\treturn <Frame>\n\t\t<TextLabel Text=\"hi\"/>\n\t</Frame>\nend\n";
         let output = worm().transform(source).expect("luau");
 
         assert_eq!(output.lines().count(), source.lines().count(), "\n{output}");
@@ -177,12 +189,13 @@ mod tests {
         )
         .expect("settings");
 
-        // The file is not there, and a luaux project works without one.
+        // The file is not there, and a luaux project works without one, on
+        // the default the library ships: React's factory.
         let output = worm
-            .transform("local create = require(vide).create\nreturn <Frame/>\n")
+            .transform("local React = require(path)\nreturn <Frame/>\n")
             .expect("luau");
 
-        assert!(output.contains("create"), "{output}");
+        assert!(output.contains("React.createElement"), "{output}");
     }
 
     #[test]

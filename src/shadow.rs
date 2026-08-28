@@ -160,6 +160,12 @@ impl<'a> Region<'a> {
 
                 Attribute::Spread { span, .. } => self.keep_hole(*span, config),
 
+                // `={props.Text}` reads its expression like any hole.
+                Attribute::Inferred { span, .. } => {
+                    let braces = scan::brace_span(self.src, *span);
+                    self.keep_hole(braces, config);
+                }
+
                 Attribute::Named { .. } => {}
             }
         }
@@ -251,15 +257,26 @@ impl<'a> Region<'a> {
 
             spaces += 1;
 
-            if spaces < base.len() {
+            /*
+            The comma has to fit inside the run too, or it would land on
+            whatever follows, and once that byte was a newline and a line
+            of the file moved. At the closing brace the comma is not
+            needed and the name alone fits.
+            */
+            let closes = index + 1 == last;
+            let needed = if closes { base.len() } else { base.len() + 1 };
+
+            if spaces < needed {
                 continue;
             }
 
-            let at = index + 1 - base.len();
-            self.bytes[at..=index].copy_from_slice(base.as_bytes());
+            let end = if closes { index } else { index - 1 };
+            let at = end + 1 - base.len();
 
-            if index + 1 < last {
-                self.bytes[index + 1] = b',';
+            self.bytes[at..=end].copy_from_slice(base.as_bytes());
+
+            if !closes {
+                self.bytes[index] = b',';
             }
 
             return;
@@ -310,10 +327,11 @@ mod tests {
 
     #[test]
     fn a_region_becomes_a_table_of_the_same_length() {
-        // `create` is the factory, and `<Frame/>` compiles to a call of it.
+        // The default factory is React's since luaux 0.2.0, and the read
+        // keeps its base name.
         assert_eq!(
             holds_the_rules("local a = <Frame/>\n"),
-            "local a = {create}\n"
+            "local a = { React}\n"
         );
     }
 
@@ -324,7 +342,7 @@ mod tests {
         let src = "local size = 1\nreturn <Frame Size={size}/>\n";
         let shadow = holds_the_rules(src);
 
-        assert_eq!(shadow, "local size = 1\nreturn {create,     size, }\n");
+        assert_eq!(shadow, "local size = 1\nreturn {React,      size, }\n");
     }
 
     /*

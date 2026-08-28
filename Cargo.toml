@@ -26,7 +26,7 @@ larvae-worm = { path = "../larvae/crates/larvae-worm", features = [
   "native",
 ] }
 
-luaux = "0.1.3"
+luaux = "0.2.0"
 # `luaux.toml` and the `[worms.luaux.config]` table of larvae are TOML.
 toml = "1"
 # larvae sends the resolved `[fmt]` table of the project as JSON.

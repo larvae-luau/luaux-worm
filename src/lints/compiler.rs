@@ -3,7 +3,7 @@
 use larvae_worm::native::Finding;
 use luaux::compile::{CompileError, Warning, compile_recovering};
 use luaux::config::LintLevel;
-use luaux::{Config, Vide};
+use luaux::Config;
 
 use crate::report;
 
@@ -39,7 +39,7 @@ pub fn findings(src: &str, config: &Config, holes: &[usize]) -> Result<Vec<Findi
     // A parse error stops the compile, because a recovery from `<Frame` with no
     // `>` is a guess about what the author means. A resolution error does not:
     // the tree is complete, so the file gives every other finding as well.
-    let compiled = compile_recovering(src, &Vide, config).map_err(|error| {
+    let compiled = compile_recovering(src, crate::backend(&config).as_ref(), config).map_err(|error| {
         finding(
             COMPILE_ERROR,
             src,
@@ -181,14 +181,14 @@ mod tests {
     use super::*;
 
     fn findings_of(src: &str) -> Vec<Finding> {
-        findings(src, &Config::default(), &crate::scan::marks(src).holes).expect("the compiler")
+        findings(src, &Config::bare(), &crate::scan::marks(src).holes).expect("the compiler")
     }
 
     #[test]
     fn a_file_that_does_not_compile_gives_a_finding_and_not_a_message() {
         let src = "return <Frame>\n";
         let refusal =
-            findings(src, &Config::default(), &[]).expect_err("the compiler stops on this one");
+            findings(src, &Config::bare(), &[]).expect_err("the compiler stops on this one");
 
         assert_eq!(refusal.lint, COMPILE_ERROR);
         assert!(refusal.message.contains("unclosed element"), "{refusal:?}");
