@@ -7,6 +7,10 @@ entry = "luaux-worm"
 claims        = [".luaux"]
 fmt           = true
 inherit_lints = true
+# Other worms may serve .luaux files: their Luau-reading lints run over
+# this worm's byte-true shadow, so a class convention holds in markup
+# files too.
+shared        = true
 
 # The lints. Each name is bare, and larvae puts it under the key of this worm,
 # so a project writes them together under `[lint.rules.luaux]` and a name of
