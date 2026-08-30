@@ -1,9 +1,9 @@
 //! The findings that the luaux compiler gives while it builds the file.
 
 use larvae_worm::native::Finding;
+use luaux::Config;
 use luaux::compile::{CompileError, Warning, compile_recovering};
 use luaux::config::LintLevel;
-use luaux::Config;
 
 use crate::report;
 
@@ -39,17 +39,18 @@ pub fn findings(src: &str, config: &Config, holes: &[usize]) -> Result<Vec<Findi
     // A parse error stops the compile, because a recovery from `<Frame` with no
     // `>` is a guess about what the author means. A resolution error does not:
     // the tree is complete, so the file gives every other finding as well.
-    let compiled = compile_recovering(src, crate::backend(&config).as_ref(), config).map_err(|error| {
-        finding(
-            COMPILE_ERROR,
-            src,
-            holes,
-            error.offset,
-            error.length.max(1),
-            &error.message,
-            error.help.as_deref(),
-        )
-    })?;
+    let compiled =
+        compile_recovering(src, crate::backend(&config).as_ref(), config).map_err(|error| {
+            finding(
+                COMPILE_ERROR,
+                src,
+                holes,
+                error.offset,
+                error.length.max(1),
+                &error.message,
+                error.help.as_deref(),
+            )
+        })?;
 
     let mut findings = Vec::new();
 

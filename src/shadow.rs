@@ -54,7 +54,13 @@ pub fn view(src: &str, config: &Config) -> Option<String> {
 /// The text between two markup regions is Luau already, and it crosses byte for
 /// byte. A hole holds a range of this kind as well, which is why this takes a
 /// range and not the whole file.
-fn range(src: &str, start: usize, end: usize, config: &Config, called: &mut bool) -> Option<String> {
+fn range(
+    src: &str,
+    start: usize,
+    end: usize,
+    config: &Config,
+    called: &mut bool,
+) -> Option<String> {
     let segments = scan::segments(src, start, end).ok()?;
     let mut out = String::with_capacity(end - start);
 
