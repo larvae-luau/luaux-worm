@@ -144,6 +144,27 @@ fn format_gives_a_document_and_the_comments() {
 }
 
 #[test]
+fn format_sends_the_whole_table_type_to_larvae() {
+    let source = "type Props = {\n    initial: number?,\n}\n";
+    let reply = Worm::start().run("format", source);
+
+    assert_eq!(reply["ok"], json!(true), "{reply}");
+    assert_eq!(
+        reply["document"],
+        json!({
+            "concat": [{
+                "host": {
+                    "start": 0,
+                    "end": source.trim_end().len(),
+                    "parse": "block",
+                },
+            }],
+        }),
+        "{reply}"
+    );
+}
+
+#[test]
 fn lint_gives_findings_under_the_names_of_the_manifest() {
     // One line for each rule, so the manifest answers for every name that the
     // worm reports.

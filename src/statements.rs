@@ -67,8 +67,14 @@ pub fn runs(shadow: &str, markup: &[(usize, usize)]) -> Vec<Run> {
 }
 
 fn range_of(node: &impl Node) -> Option<(usize, usize)> {
-    node.range()
-        .map(|(start, end)| (start.bytes(), end.bytes()))
+    // Full Moon can end a table type at its fields. Token bounds include the
+    // closing delimiter even when the iterator is not in source order.
+    node.tokens()
+        .map(|reference| {
+            let token = reference.token();
+            (token.start_position().bytes(), token.end_position().bytes())
+        })
+        .reduce(|(start, end), (next_start, next_end)| (start.min(next_start), end.max(next_end)))
 }
 
 fn no_markup_between(markup: &[(usize, usize)], from: usize, to: usize) -> bool {
@@ -129,6 +135,47 @@ mod tests {
     #[test]
     fn a_statement_that_is_markup_is_not_a_run() {
         assert_eq!(runs_of("local ui = <Frame/>\nreturn ui\n"), ["return ui"]);
+    }
+
+    #[test]
+    fn table_types_keep_their_closing_delimiters() {
+        for source in [
+            "type Props = {\n    initial: number?,\n}",
+            "type Props = {}",
+            "type Props = { nested: { value: number } }",
+            "export type Props = { value: number }",
+            "type Props = { value: number }?",
+            "type Props = string | { value: number }",
+            "type Props = {\n    -- a field\n    value: number,\n}",
+        ] {
+            assert_eq!(runs_of(source), [source], "{source}");
+        }
+    }
+
+    #[test]
+    fn surrounding_trivia_stays_outside_a_run() {
+        assert_eq!(
+            runs_of("-- before\n  type Props = { value: number } -- after\n"),
+            ["type Props = { value: number }"]
+        );
+    }
+
+    #[test]
+    fn table_types_next_to_markup_stay_whole() {
+        assert_eq!(
+            runs_of(
+                "type Before = { value: number }\nlocal ui = <Frame/>\ntype After = { value: string }\n"
+            ),
+            [
+                "type Before = { value: number }",
+                "type After = { value: string }",
+            ]
+        );
+    }
+
+    #[test]
+    fn a_single_token_statement_is_a_run() {
+        assert_eq!(runs_of("return\n"), ["return"]);
     }
 
     #[test]
