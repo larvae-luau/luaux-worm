@@ -190,6 +190,14 @@ mod tests {
     }
 
     #[test]
+    fn a_table_type_is_one_complete_host_span() {
+        assert_eq!(
+            json("type Props = {\n    initial: number?,\n}\n"),
+            r#"{"concat":[{"host":{"start":0,"end":38,"parse":"block"}}]}"#
+        );
+    }
+
+    #[test]
     fn the_statement_that_holds_markup_crosses_byte_for_byte() {
         // `return ` is the front of a statement, and larvae parses no such
         // thing, so it crosses as a span of the source and not as `host`.
