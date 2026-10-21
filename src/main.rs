@@ -24,14 +24,13 @@
 
 mod format;
 mod lints;
-mod lsp;
 mod report;
 mod scan;
 mod settings;
 mod shadow;
 mod statements;
 
-use larvae_worm::native::{Format, Handler, Lint, LspLoad, Settings as FromLarvae, serve};
+use larvae_worm::native::{Format, Handler, Lint, Settings as FromLarvae, serve};
 use luaux::{Element, Table};
 
 use settings::Settings;
@@ -91,45 +90,6 @@ impl Handler for LuauxWorm {
 
     fn lint(&mut self, source: &str) -> Result<Lint, String> {
         lints::lint(source, &self.settings.config)
-    }
-
-    /// A require of a `.luaux` file resolves here; everything else passes
-    fn lsp_resolve(&mut self, from: &str, spec: &str) -> Result<Option<String>, String> {
-        Ok(lsp::resolve(from, spec))
-    }
-
-    /// The lowering the analyzer reads, with the line map and the markup claims
-    fn lsp_load(&mut self, path: &str) -> Result<LspLoad, String> {
-        let source =
-            std::fs::read_to_string(path).map_err(|e| format!("cannot read {path}: {e}"))?;
-
-        let lowered = self.transform(&source)?;
-        let (span_map, claims) = lsp::load(&source, &lowered);
-
-        Ok(LspLoad {
-            source: lowered,
-            span_map,
-            claims,
-        })
-    }
-
-    /// The markup answers: tag hover and tag completions, their server's core
-    fn lsp_respond(
-        &mut self,
-        kind: &str,
-        context: &str,
-        response: &str,
-    ) -> Result<Option<serde_json::Value>, String> {
-        let context: serde_json::Value = serde_json::from_str(context).unwrap_or_default();
-        let base: serde_json::Value = serde_json::from_str(response).unwrap_or_default();
-
-        match kind {
-            "hover" => Ok(lsp::hover(&context, &base, &self.settings)),
-
-            "completions" => Ok(Some(lsp::completions(&context, base, &self.settings))),
-
-            _ => Ok(None),
-        }
     }
 }
 
