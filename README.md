@@ -32,6 +32,11 @@ file, and this worm holds no printer of its own.
 The linter reports a finding with no severity. larvae stamps the level, applies
 `-- larvae: allow(...)`, and decides the exit code.
 
+In the editor, `larvae lsp` sends a `.luaux` file to this worm. The editor
+shows the findings, formats the file, and offers the fixes. Since larvae 0.10,
+larvae serves no types, so a `.luaux` file gets no hover and no completion,
+and a require of one has no type. A luau-lsp extension can bring them back.
+
 ## What you need
 
 - Rust 1.85 or later, for the 2024 edition.
